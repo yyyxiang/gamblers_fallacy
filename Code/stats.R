@@ -1,6 +1,7 @@
 library(tidyverse)
 library(lmerTest)
 library(nortest)
+library(brms)
 
 dat <- read.csv('./../Data/IID_dat.csv', header = T, stringsAsFactors = T)
 
