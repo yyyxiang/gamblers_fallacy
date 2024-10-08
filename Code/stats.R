@@ -54,7 +54,6 @@ dat_point_50_streak <- dat %>%
 
 exp1_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
                 data = dat_point_50_streak,
-                file = 'cache/exp1_mdl',
                 iter = 4000,
                 seed = 1)
 summary(exp1_mdl)
@@ -164,6 +163,5 @@ rh_dat_streak <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors
 
 exp3_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
                 data = rh_dat_streak,
-                file = 'cache/exp3_mdl',
                 seed = 1)
 summary(exp3_mdl)
