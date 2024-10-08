@@ -51,10 +51,12 @@ dat_point_50_streak <- dat %>%
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup()
 
-fit_lme <- lmer(repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2)|subject), 
+exp1_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
                 data = dat_point_50_streak,
-                control = lmerControl(optimizer = 'bobyqa'))
-summary(fit_lme)
+                file = 'cache/exp1_mdl',
+                iter = 4000,
+                seed = 1)
+summary(exp1_mdl)
 
 ##### Experiments 2a & 2b: p = 0.6 or 0.4, IID #####
 dat_prob_60 <- dat %>% 
@@ -153,3 +155,14 @@ Z = qnorm(two_sample_wilcox$p.value/2)
 Z
 r = abs(Z) / sqrt(length(unique(rh_dat$subject)) + length(unique(dat_prob_50$subject)))
 r
+
+rh_dat_streak <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
+  group_by(subject, streak) %>% 
+  dplyr::summarize(repetition = mean(repetition)) %>% 
+  ungroup()
+
+exp3_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
+                data = rh_dat_streak,
+                file = 'cache/exp3_mdl',
+                seed = 1)
+summary(exp3_mdl)
