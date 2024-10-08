@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Predict Draws from a Bingo Cage </title>
+    <script src="jspsych/dist/jspsych.js"></script>
+    <script src="jspsych/dist/plugin-browser-check.js"></script>
+    <script src="jspsych/dist/plugin-external-html.js"></script>
+    <script src="jspsych/dist/plugin-fullscreen.js"></script>
+    <script src="jspsych/dist/plugin-survey.js"></script>
+    <script src="jspsych/dist/plugin-survey-multi-choice.js"></script>
+    <script src="jspsych/dist/plugin-instructions.js"></script>
+    <script src="jspsych/dist/plugin-call-function.js"></script>
+    <script src="jspsych/dist/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/dist/plugin-html-button-response.js"></script>
+    <script src="jspsych/dist/plugin-preload.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js"></script>
+    <link href="jspsych/dist/jspsych.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://unpkg.com/@jspsych/plugin-survey@0.2.2/css/survey.css">
+    <style>
+        .row { display: flex; }
+        .column { flex: 50%; }
+    </style>
+  </head>
+  <body></body>
+  <script>
+
+  	const jsPsych = initJsPsych();
+
+  	var timeline = [];
+
+    // setup
+    var num_rounds = 18;
+    var num_trials = 8;
+    var stim_img = ['img_bingo50/blue.png', 'img_bingo50/red.png', 'img_bingo50/line.png'];
+    // blue is coded as 0
+
+    if (Math.random() > 0.5) {
+        var condition = '60-40';
+    } else {
+        var condition = '40-60';
+    }
+
+    var sequence = [];
+    var streak_length = [];
+    for (let i = 0; i < num_rounds; i++) {
+        
+        if (condition == '60-40') {
+            var random_sequence = jsPsych.randomization.sampleWithReplacement([0,1], num_trials, [60,40]);    
+        } else if (condition == '40-60') {
+            var random_sequence = jsPsych.randomization.sampleWithReplacement([0,1], num_trials, [40,60]);
+        }
+        
+        var current_streak = 1;
+        for (let j = 1; j < num_trials; j++) {
+            if (random_sequence[j] == random_sequence[j-1]) {
+                current_streak += 1
+            } else {
+                current_streak = 1
+            }
+        }
+        sequence.push(random_sequence)
+        streak_length.push(current_streak)
+    }
+
+    function watch_stim(round, trial) {
+    	var stim = '<div style="float:left; display: flex; flex-wrap: wrap; padding: 5px 300px;">';
+        if (trial <= num_trials) {
+            for (let i = 1; i <= trial; i++) {
+                stim += sequence[round-1][i-1] == 0 ? '<img src="' + stim_img[0] + '" height="80"></img>' : '<img src="' + stim_img[1] + '" height="80"></img>'
+            }
+        } else if (trial == num_trials+1 || trial == num_trials+3 || trial == num_trials+5) {
+        	for (let i = 1; i <= num_trials; i++) {
+                stim += sequence[round-1][i-1] == 0 ? '<img src="' + stim_img[0] + '" height="80"></img>' : '<img src="' + stim_img[1] + '" height="80"></img>'
+            }
+            stim += '<img src="' + stim_img[2] + '" height="80"></img>'
+        } else if (trial == num_trials+2 || trial == num_trials+4) {
+        	for (let i = 1; i <= num_trials; i++) {
+                stim += sequence[round-1][i-1] == 0 ? '<img src="' + stim_img[0] + '" height="80"></img>' : '<img src="' + stim_img[1] + '" height="80"></img>'
+            }
+        }
+
+        var watch = {
+        	type: jsPsychHtmlKeyboardResponse,
+            stimulus: '<p style="font-size: 20px; text-align: left; padding: 5px 100px;"><strong>Here is a new round of draws by the mechanical bingo machine.</strong></p><p style="text-align: left; padding: 5px 100px;">You are now watching 8 draws by a mechanical bingo machine from a <b>covered</b> cage that contains <b><u>' + (condition == '60-40' ? 60 : 40) + ' blue balls and ' + (condition == '60-40' ? 40 : 60) + ' red balls</u></b>. <b>Wait until you have seen the result of all eight draws</b>, then make your prediction about the color of the next (9th) ball drawn from the cage. </p><br>' + stim + '</div>' + '<br><br><br><br><p style="padding: 5px 100px;">What color bingo ball will the machine draw next? Will it be <strong>BLUE</strong> or <strong>RED</strong>?</p><br><br>',
+            choices: 'NO_KEYS',
+        	trial_duration: 1000,
+            data: {
+            	round: round,
+            	trial: trial,
+            }
+        }
+        return watch
+    }
+
+    function predict_next(round) {
+    	var stim = '<div style="float:left; display: flex; flex-wrap: wrap; padding: 5px 300px;">';
+        	for (let i = 1; i <= num_trials; i++) {
+                stim += sequence[round-1][i-1] == 0 ? '<img src="' + stim_img[0] + '" height="80"></img>' : '<img src="' + stim_img[1] + '" height="80"></img>'
+            }
+            stim += '<img src="' + stim_img[2] + '" height="80"></img>'
+
+        var prediction = {
+        	type: jsPsychHtmlButtonResponse,
+            stimulus: '<p style="font-size: 20px; text-align: left; padding: 5px 100px;"><strong>Here is a new round of draws by the mechanical bingo machine.</strong></p><p style="text-align: left; padding: 5px 100px;">You are now watching 8 draws by a mechanical bingo machine from a <b>covered</b> cage that contains <b><u>' + (condition == '60-40' ? 60 : 40) + ' blue balls and ' + (condition == '60-40' ? 40 : 60) + ' red balls</u></b>. <b>Wait until you have seen the result of all eight draws</b>, then make your prediction about the color of the next (9th) ball drawn from the cage. </p><br>' + stim + '</div>' + '<br><br><br><br><p style="padding: 5px 100px;">What color bingo ball will the machine draw next? Will it be <strong>BLUE</strong> or <strong>RED</strong>?</p><br>',
+            choices: ['BLUE', 'RED'],
+            margin_horizontal: '100px',
+            data: {
+            	round: round,
+            	streak: streak_length[round-1],
+                sequence: sequence[round-1],
+                ending: sequence[round-1][num_trials-1]
+            },
+            on_finish: function(data) {
+            	var repetition = data.response == sequence[round-1][num_trials-1] ? 1 : 0
+            	jsPsych.data.addDataToLastTrial({repetition: repetition}); // 0: false, 1: true
+            }
+        }
+        return prediction
+    }
+
+    var subjectId =  jsPsych.randomization.randomID(12);
+    var fullurl = window.location.href;
+    var mturkId = jsPsych.data.getURLVariable('workerId');
+    var expIndex = 'Exp2b';
+    var comp_code = 'SAce29r8cjd';
+    jsPsych.data.addProperties({
+        subjectId: subjectId,
+        url: fullurl,
+        mturkId: mturkId,
+        expIndex: expIndex,
+        condition: condition
+    });
+
+    var instructions = {
+        type: jsPsychInstructions,
+        pages: [
+            `<p style='font-size: 30px'> Predicting Draws from a Bingo Cage </p>
+            <p style="text-align: left; padding: 5px 100px;"><i> Please read these instructions carefully.  On the next page, you will be required to answer a few questions about these instructions before you can move on to the task. </i></p>
+            <p style="text-align: left; padding: 5px 100px;"> In this task you will watch a mechanical bingo machine draw blue and red balls from its <b>covered</b> cage. The cage contains <b><u>${condition == '60-40' ? 60 : 40} blue balls and ${condition == '60-40' ? 40 : 60} red balls</u></b>. At the start of every round,  the machine spins the cage, mixing up all of the balls, and then rolls one ball out of the cage so that an  announcer sitting next to the cage can see the color of the ball.  The announcer calls out the color of the ball ("blue" or "red"), and the machine rolls the ball back into its covered cage.  The machine then spins the cage again, and rolls another ball out.  The announcer calls out the color of the ball, and the machine rolls that ball back into its cage.  The machine continues <b><u>randomly drawing colored balls </u>from the cage until 9 balls have been drawn</b>.  After the 9th ball has been drawn, the round ends, and there is a pause. </p>`,
+            `<p style="text-align: left; padding: 5px 100px;"> Each round, we will reveal to you, one at a time, the colors of the first 8 balls drawn by the machine. <b><u>After watching the outcomes</u></b> of these eight draws, <b><u>your job is to predict the color of the next (9th) ball drawn by the machine </u></b>.  After you make your prediction about the 9th ball, you will move on to the next round, where you will watch the machine draw another 8 balls and you will again predict the color of the 9th ball.  This process will repeat 18 times, so you will watch 18 different rounds of bingo ball draws. <b><u>Remember that each round</u></b> you will see the color of the balls from the first 8 draws, and you will make a prediction about the color of the 9th ball drawn. </p>
+            <p style="text-align: left; padding: 5px 100px;"> Once you've completed all 18 rounds, there will be a few questions about yourself, and that will wrap up the HIT. </p>`
+        ],
+        show_clickable_nav: true
+    };
+
+    var gap = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: " ",
+        choices: 'NO_KEYS',
+        trial_duration: 1000
+    };
+
+    function between_round_gap(round) {
+    	return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: "<p style='font-size: 22px'> Round " + round + "/" + num_rounds + "</p>",
+        choices: 'NO_KEYS',
+        trial_duration: 2000
+    	};
+    }
+
+    var failed_comprehension_questions = true;
+    let comprehension_questions = {
+        type: jsPsychSurveyMultiChoice,
+        preamble: `<br> Comprehension questions:`,
+        questions: [
+            {
+                prompt: '<b> 1. How many outcomes will you see in each sequence? </b>',
+                options: ['8.',
+                          '9.',
+                          '5.'], 
+                required: true
+            },
+            {
+                prompt: '<b> 2. After you see all the outcomes, what are you supposed to do? </b>',
+                options: ['Identify the first outcome in the sequence.',
+                          'Predict the next outcome in the sequence.',
+                          'Describe what the sequence looks like.'], 
+                required: true
+            },
+            {
+                prompt: '<b> 3. Which statement best describes what you will see each round? </b>',
+                options: ['Each round I will see a new sequence of 8 draws made by the mechanical bingo machine.',
+                          'Each round I will see a continuation of the draws made by the mechanical bingo machine.',
+                          'Each round I will see a sequence of draws made by several different mechanical bingo machines.'], 
+                required: true
+            },
+            {
+                prompt: '<b> 4. Which statement best describes the outcomes in each sequence? </b>',
+                options: ['Each sequence shows the outcomes of 8 draws made by 8 different mechanical bingo machines.',
+                          'Each sequence shows the outcomes of 8 consecutive draws made by 1 mechanical bingo machine.',
+                          'Each sequence shows a sample of various draws made by 1 mechanical bingo machine across a number of rounds.'], 
+                required: true
+            },
+            {
+                prompt: '<b> 5. After the announcer calls out the color of a ball, what does the machine do? </b>',
+                options: ['The machine DOES NOT roll that ball back into the cage before spinning and drawing the next ball.',
+                          'The machine rolls that ball into a DIFFERENT cage before spinning and drawing the next ball.',
+                          'The machine DOES roll that ball back into the cage before spinning and drawing the next ball.'], 
+                required: true
+            },
+            {
+                prompt: '<b> 6. How many blue and red balls are in the cage? </b>',
+                options: ['60 blue, 40 red.',
+                          '50 blue, 50 red.',
+                          '40 blue, 60 red.'], 
+                required: true
+            }
+        ],
+        on_finish: function(data) {
+            var responses = data.response
+            if (condition == '60-40') {
+                if (responses.Q0.includes('8') == true && responses.Q1.includes('next') == true && responses.Q2.includes('new') == true && responses.Q3.includes('consecutive') == true && responses.Q4.includes('DOES roll') == true && responses.Q5.includes('60 blue, 40 red.') == true) {
+                failed_comprehension_questions = false
+                }
+            } else {
+                if (responses.Q0.includes('8') == true && responses.Q1.includes('next') == true && responses.Q2.includes('new') == true && responses.Q3.includes('consecutive') == true && responses.Q4.includes('DOES roll') == true && responses.Q5.includes('40 blue, 60 red.') == true) {
+                failed_comprehension_questions = false
+                }
+            }
+        }
+    };
+
+    var fail_page = {
+          type: jsPsychHtmlButtonResponse,
+          stimulus: "<p> Oops! You did not pass the comprehension check. </p>",
+          choices: ['<p style="font-size: 20px"><b> View instructions again </b></p>']
+    };
+
+    var fail = {
+        timeline: [fail_page],
+        conditional_function: function() {
+            return failed_comprehension_questions
+        }
+    };
+
+    var inst_comprehension = {
+        timeline: [instructions, gap, comprehension_questions, fail],
+        loop_function: function(){
+            return failed_comprehension_questions
+        }
+    };
+
+    var instructions2 = {
+        type: jsPsychInstructions,
+        pages: [
+        `<p>Congratulations on passing the comprehension check! You are about to start the game!</p>
+        <p><b>Gentle Reminders:</b></p>
+        <p>Please make sure to follow the instructions on the screen carefully.</p>
+        <p>In order for your data to be saved successfully, you need to complete the full game, advancing to the completion code screen at the end of the game.</p>`,
+        `<p>The game will take about 12 minutes to complete.</p>
+        <p>You will earn $2.50 for completing the game. </p>
+        <p>We thank you for taking the time to complete this game to the best of your ability.</p>
+        <p><b>Please proceed when you are ready to begin the game.</b></p>`
+        ],
+        show_clickable_nav: true
+    };
+
+    var preload = {
+        type: jsPsychPreload,
+        images: stim_img
+    };
+
+    var check_browser = {
+        type: jsPsychBrowserCheck,
+        minimum_width: 600,
+        minimum_height: 400,
+        inclusion_function: function(data) {return (!data.mobile);},
+        exclusion_message:  function(data) {return (data.mobile)? "You must complete this experiment on a computer." : "You cannot participate in this experiment.";}
+    }
+
+    function check_consent(elem) {
+        if (document.getElementById('consent_checkbox').checked) { return true; }
+        else {
+            alert("If you wish to participate, you must check the box.");
+            return false;
+        }
+        return false;
+    };
+
+    var consent = {
+        type: jsPsychExternalHtml,
+        url: 'consent_bingo50.html',
+        cont_btn: 'start',
+        force_refresh: true,
+        check_fn: check_consent
+    }
+
+    var full_screen = {
+        type: jsPsychFullscreen,
+        fullscreen_mode: true,
+        message: `<p>To avoid distration, this game must be completed in <b>full screen</b> mode by clicking the button below.</p>
+                  <p>Please <b>do not exit full-screen mode until the end</b> of the game.</p><br>`,
+        button_label: "Enter full screen"
+    }
+
+    var demographics = {
+        type: jsPsychSurvey,
+        pages: [[
+            {type:'html', prompt:'We need some more information from you. This will not be associated with your MTurk profile, nor will it impact you in any way.'},
+            {
+                type: 'drop-down',
+                prompt: 'Gender',
+                name: 'gender',
+                required: true,
+                options: ['Female', 'Male', 'Non-binary', 'Other'],
+            },
+            {
+                type: 'text',
+                prompt: 'Age',
+                name: 'age',
+                input_type: 'number',
+                required: true,
+                textbox_columns: 3
+            },
+            {
+                type: 'text',
+                prompt: 'Please summarize the task you just completed in 1-2 sentences, so that we know you have been paying attention!',
+                name: 'summary',
+                required: true,
+                textbox_rows: 3,
+            },
+            {
+                type: 'text',
+                prompt: 'Optional question: We\'re always trying to improve. Please let us know if you have any comments.',
+                name: 'comment',
+                required: false,
+                textbox_rows: 3,
+            }
+        ]],
+        show_question_numbers: 'on',
+        on_finish: function(data) {
+            data.gender = data.response.gender;
+            data.age = data.response.age;
+            data.summary = data.response.summary;
+            data.comment = data.response.comment;
+                var interaction_data = jsPsych.data.getInteractionData();
+                data.screen = interaction_data.json();
+        },
+        save_trial_parameters: {accuracy: false}
+    }
+
+    // start exp
+    timeline.push(preload);
+    timeline.push(check_browser);
+    timeline.push(consent);
+    timeline.push(full_screen);
+    timeline.push(inst_comprehension);
+    timeline.push(instructions2, gap);
+
+    for (let r = 1; r <= num_rounds; r++) {
+    	timeline.push(between_round_gap(r))
+    	for (let t = 1; t <= 13; t++) {
+    		timeline.push(watch_stim(r, t))
+    	}
+    	timeline.push(predict_next(r))
+    }
+
+    timeline.push(demographics)
+
+
+    // save data
+    function saveData(name, data) {
+    	var xhr = new XMLHttpRequest();
+          xhr.open('POST', 'save_data.php');
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.send(JSON.stringify({filename: name, filedata: data}));    
+    } 
+
+    let save_data = {
+        type: jsPsychCallFunction,
+        func: function(){ saveData(expIndex + '_' + mturkId + '_' + subjectId + '_output', jsPsych.data.get().csv()); }
+    }
+    timeline.push(save_data);
+
+    let completion = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `<p> Your response has been recorded!</p>
+        <p> Your completion code is</p> ${comp_code}
+        <p> Please copy this code into Mechanical Turk. You will not be be able to access this code after leaving this page!</p>
+        <p> No further action is necessary; you may now exit the window at any time.</p>`,
+        choices: 'NO_KEYS',
+    }
+    timeline.push(completion);
+
+    jsPsych.run(timeline);
+
+  </script>
+</html>
+
+
+
