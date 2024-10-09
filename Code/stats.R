@@ -1,5 +1,4 @@
 library(tidyverse)
-library(lmerTest)
 library(nortest)
 library(brms)
 
