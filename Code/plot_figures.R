@@ -66,8 +66,8 @@ dev.off()
 p4_1 <- dist_plot(dat %>% filter(ground_truth == 50 & response == 'probability')) +
   labs(title = 'Exp 1a (IID sequences)', x = NULL, y = 'Frequency') 
 
-rh_dat <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) 
-p4_2 <- dist_plot(rh_dat) +
+rh_replication <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) 
+p4_2 <- dist_plot(rh_replication) +
   labs(title = 'Exp 3 (RH sequences)', x = NULL, y = NULL) 
 
 prob_dat_summary_streak <- dat %>% 
@@ -80,12 +80,12 @@ p5_1 <- rh_prob_streak_plot(prob_dat_summary_streak) +
   theme(legend.position = 'none') +
   labs(x = 'Terminal streak length', y = 'Probability of streak repeating (%)')
 
-rh_dat_summary_streak <- rh_dat %>% 
+rh_replication_summary_streak <- rh_replication %>% 
   group_by(subject, streak) %>% 
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup() %>% 
   mutate(streak = factor(streak, levels = seq(1, 8, by = 1)))  
-p5_2 <- rh_prob_streak_plot(rh_dat_summary_streak) +
+p5_2 <- rh_prob_streak_plot(rh_replication_summary_streak) +
   labs(x = 'Terminal streak length', y = NULL)
 
 pdf('./../figures/fig4.pdf', onefile = T, width = 8, height = 7)
@@ -93,4 +93,17 @@ pdf('./../figures/fig4.pdf', onefile = T, width = 8, height = 7)
   (p5_1 | p5_2)
 dev.off()
 
+### Appendix A. Re-analysis of original RH data ###
+rh_2023_dat <- read.csv('RH2023_study2A.csv', header = T, stringsAsFactors = T) %>% 
+  filter(generator == 'bingo') %>% 
+  mutate(response = 'probability') %>% 
+  dplyr::rename(subject = participant_id,
+                repetition = prediction_recode,
+                ground_truth = rate)
 
+dat <- rh_2023_dat
+p6 <- hist_plot('probability', 50) + labs(title = NULL)
+
+pdf('./../figures/fig5.pdf', onefile = T, width = 5, height = 3)
+p6
+dev.off()
