@@ -127,7 +127,7 @@ r = abs(Z) / sqrt(length(unique(dat_point_40$subject)))
 r
 
 ##### Experiment3: p = 0.5, replication of Rao & Hastie (2023) #####
-rh_replication <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
+rh_replication <- read.csv('./../Data/RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
   group_by(subject) %>% 
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup()
@@ -155,7 +155,7 @@ Z
 r = abs(Z) / sqrt(length(unique(rh_replication$subject)) + length(unique(dat_prob_50$subject)))
 r
 
-rh_replication_streak <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
+rh_replication_streak <- read.csv('./../Data/RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
   group_by(subject, streak) %>% 
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup()
