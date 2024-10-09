@@ -128,40 +128,40 @@ r = abs(Z) / sqrt(length(unique(dat_point_40$subject)))
 r
 
 ##### Experiment3: p = 0.5, replication of Rao & Hastie (2023) #####
-rh_dat <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
+rh_replication <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
   group_by(subject) %>% 
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup()
 
-length(which(rh_dat$repetition < 40)) / length(rh_dat$repetition)
-mean(rh_dat$repetition)
-median(rh_dat$repetition)
+length(which(rh_replication$repetition < 40)) / length(rh_replication$repetition)
+mean(rh_replication$repetition)
+median(rh_replication$repetition)
 
-lillie.test(rh_dat$repetition)
-rank_sum_test <- wilcox.test(rh_dat$repetition,
+lillie.test(rh_replication$repetition)
+rank_sum_test <- wilcox.test(rh_replication$repetition,
                              mu = 50,
                              alternative = 'two.sided')
 rank_sum_test
 Z = qnorm(rank_sum_test$p.value/2)
 Z
-r = abs(Z) / sqrt(length(unique(rh_dat$subject)))
+r = abs(Z) / sqrt(length(unique(rh_replication$subject)))
 r
 
-two_sample_wilcox <- wilcox.test(rh_dat$repetition,
+two_sample_wilcox <- wilcox.test(rh_replication$repetition,
                              dat_prob_50$repetition,
                              alternative = 'two.sided')
 two_sample_wilcox
 Z = qnorm(two_sample_wilcox$p.value/2)
 Z
-r = abs(Z) / sqrt(length(unique(rh_dat$subject)) + length(unique(dat_prob_50$subject)))
+r = abs(Z) / sqrt(length(unique(rh_replication$subject)) + length(unique(dat_prob_50$subject)))
 r
 
-rh_dat_streak <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
+rh_replication_streak <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
   group_by(subject, streak) %>% 
   dplyr::summarize(repetition = mean(repetition)) %>% 
   ungroup()
 
 exp3_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
-                data = rh_dat_streak,
+                data = rh_replication_streak,
                 seed = 1)
 summary(exp3_mdl)
