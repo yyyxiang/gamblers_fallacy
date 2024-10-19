@@ -3,6 +3,22 @@ library(patchwork)
 library(boot)
 source('helper.R')
 
+######### Re-analysis of original RH data #########
+rh_2023_dat <- read.csv('./../Data/RH2023_study2A.csv', header = T, stringsAsFactors = T) %>% 
+  filter(generator == 'bingo') %>% 
+  mutate(response = 'probability') %>% 
+  dplyr::rename(subject = participant_id,
+                repetition = prediction_recode,
+                ground_truth = rate)
+
+dat <- rh_2023_dat
+p0 <- hist_plot('probability', 50) + labs(title = NULL)
+
+pdf('fig2.pdf', onefile = T, width = 5, height = 3)
+p0
+dev.off()
+
+######### Experiments #########
 dat <- read.csv('./../Data/IID_dat.csv', header = T, stringsAsFactors = T)
 
 ### histograms ###
@@ -10,7 +26,7 @@ p1 <- (hist_plot('probability', 50) | hist_plot('point', 50)) /
   (hist_plot('probability', 60) | hist_plot('point', 60)) /
   (hist_plot('probability', 40) | hist_plot('point', 40))
 
-pdf('fig2.pdf', onefile = T, width = 8, height = 6)
+pdf('fig3.pdf', onefile = T, width = 8, height = 6)
 p1
 dev.off()
 
@@ -58,7 +74,7 @@ objective <- dat_prob %>%
 
 p3 <- point_streak_plot(point_dat_summary_streak)
 
-pdf('fig3.pdf', onefile = T, width = 12, height = 8)
+pdf('fig4.pdf', onefile = T, width = 12, height = 8)
 p2 + p3
 dev.off()
 
@@ -88,22 +104,7 @@ rh_replication_summary_streak <- rh_replication %>%
 p5_2 <- rh_prob_streak_plot(rh_replication_summary_streak) +
   labs(x = 'Terminal streak length', y = NULL)
 
-pdf('fig4.pdf', onefile = T, width = 8, height = 7)
+pdf('fig5.pdf', onefile = T, width = 8, height = 7)
 (p4_1 | p4_2) /
   (p5_1 | p5_2)
-dev.off()
-
-### Appendix A. Re-analysis of original RH data ###
-rh_2023_dat <- read.csv('./../Data/RH2023_study2A.csv', header = T, stringsAsFactors = T) %>% 
-  filter(generator == 'bingo') %>% 
-  mutate(response = 'probability') %>% 
-  dplyr::rename(subject = participant_id,
-                repetition = prediction_recode,
-                ground_truth = rate)
-
-dat <- rh_2023_dat
-p6 <- hist_plot('probability', 50) + labs(title = NULL)
-
-pdf('fig5.pdf', onefile = T, width = 5, height = 3)
-p6
 dev.off()
