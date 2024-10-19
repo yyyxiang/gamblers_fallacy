@@ -2,6 +2,16 @@ library(tidyverse)
 library(nortest)
 library(brms)
 
+######### Re-analysis of original RH data #########
+rh_2023_dat <- read.csv('./../Data/RH2023_study2A.csv', header = T, stringsAsFactors = T) %>% 
+  filter(generator == 'bingo') %>% 
+  mutate(response = 'probability') %>% 
+  dplyr::rename(subject = participant_id,
+                repetition = prediction_recode,
+                ground_truth = rate)
+lillie.test(rh_2023_dat$repetition)
+
+######### Experiments #########
 dat <- read.csv('./../Data/IID_dat.csv', header = T, stringsAsFactors = T)
 
 ##### Experiments 1a & 1b: p = 0.5, IID #####
