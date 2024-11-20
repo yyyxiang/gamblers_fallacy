@@ -1,4 +1,4 @@
-# gamblers_fallacy
+# On the robustness and provenance of the gambler's fallacy
 
 Data, materials, and analysis scripts for: On the robustness and provenance of the gambler's fallacy.
 
