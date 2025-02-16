@@ -211,6 +211,5 @@ rh_replication_streak <- read.csv('RH_replication_dat.csv', header = T, stringsA
   ungroup()
 exp3_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^2) + streak|subject),
                 data = rh_replication_streak,
-                file = 'cache/exp3_mdl',
                 seed = 1)
 summary(exp3_mdl)
