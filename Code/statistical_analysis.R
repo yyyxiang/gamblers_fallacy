@@ -2,6 +2,7 @@ library(tidyverse)
 library(nortest)
 library(brms)
 library(BayesFactor)
+set.seed(246)
 
 ######### Re-analysis of original RH data #########
 # normality test
