@@ -74,6 +74,21 @@ exp1_mdl <- brm(formula = repetition ~ 1 + I(streak^2) + streak + (1 + I(streak^
                 seed = 1)
 summary(exp1_mdl)
 
+# comparing thresholding model to data
+thresholding_prediction <- dat %>% 
+  filter(response == 'probability') %>% 
+  mutate(`Thresholding model` = case_when(repetition < ground_truth ~ 0, repetition > ground_truth ~ 100))
+# when proportion of balls with terminal streak color equals ground truth, randomly predict the next color based on ground truth
+thresholding_prediction$`Thresholding model`[is.na(thresholding_prediction$`Thresholding model`)] <- sapply(which(is.na(thresholding_prediction$`Thresholding model`)), 
+                                                                                                            function(i) sample(c(0, 100), size = 1, prob = c(1 - thresholding_prediction$ground_truth[i]/100, thresholding_prediction$ground_truth[i]/100)))
+thresholding_prediction <- thresholding_prediction %>% 
+  group_by(subject, ground_truth) %>% 
+  dplyr::summarize(repetition = mean(`Thresholding model`))
+
+bf <- ttestBF(dat_point_50$repetition, thresholding_prediction$repetition[thresholding_prediction$ground_truth == 50])
+chains = posterior(bf, iterations = 10000)
+summary(chains)
+
 ##### Experiments 2a: p = 0.6, IID, probability judgment #####
 dat_prob_60 <- dat %>% 
   filter(response == 'probability' & ground_truth == 60) %>%  
@@ -174,6 +189,16 @@ bf <- ttestBF(dat_point_40$repetition - dat_point_40$ground_truth, mu = 0)
 chains = posterior(bf, iterations = 10000)
 summary(chains)
 
+# comparing thresholding model to data (ground truth = 60)
+bf <- ttestBF(dat_point_60$repetition, thresholding_prediction$repetition[thresholding_prediction$ground_truth == 60])
+chains = posterior(bf, iterations = 10000)
+summary(chains)
+
+# comparing thresholding model to data (ground truth = 40)
+bf <- ttestBF(dat_point_40$repetition, thresholding_prediction$repetition[thresholding_prediction$ground_truth == 40])
+chains = posterior(bf, iterations = 10000)
+summary(chains)
+                                                                                                            
 ##### Experiment3: p = 0.5, replication of Rao & Hastie (2023), probability  judgment #####
 rh_replication <- read.csv('RH_replication_dat.csv', header = T, stringsAsFactors = T) %>% 
   group_by(subject, ground_truth) %>% 
